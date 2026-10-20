@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+outputs/
+runs/
+# Indian Pines / Pavia University are not redistributed (see data/benchmarks/README.md). YU Paint is attached to the
+# GitHub release instead of being committed (80 MB).
+data/benchmarks/*.npz
