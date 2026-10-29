@@ -2,7 +2,7 @@
 """Evaluate released (or newly trained) MPI-CTMixer weights on the held-out test pixels of a benchmark.
 
 The whole scene is predicted with K x K output tiles; every test pixel is scored exactly once. Two schemes are
-reported (paper Table 3 uses the overlapping one): stride 9 = non-overlapping block filling, stride 5 = overlapping
+reported (paper Table 3 uses the overlapping one): stride 9 = non-overlapping inference, stride 5 = overlapping
 inference (class probabilities of overlapping tiles are summed).
 
   python scripts/evaluate.py --dataset indian_pines

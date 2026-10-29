@@ -6,7 +6,8 @@ The full ConcealHSI dataset (279 scenes) is not public. These 26 patches show th
   1. a forward pass with the K = 9 multi-pixel head (output: class probabilities for the central 9 x 9 block),
   2. the training step on the 9 x 9 central label block (a few optimisation steps on the 26 patches, which only
      demonstrates that the code runs and the loss decreases; it is NOT a benchmark),
-  3. a per-class mean-spectrum figure.
+  3. a per-class mean-spectrum figure,
+  4. the prediction of the released pixel-pooled ConcealHSI weights on the sample patches.
 
   python scripts/demo_concealhsi_samples.py
 """
@@ -27,6 +28,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--samples", default=os.path.join(D.ROOT, "data", "concealhsi_samples", "concealhsi_samples.npz"))
     ap.add_argument("--steps", type=int, default=30)
+    ap.add_argument("--weights", default=os.path.join(D.ROOT, "weights", "mpi_ctmixer_k9_concealhsi_pixel_pooled_seed0.pth"))
     ap.add_argument("--out_dir", default="outputs/concealhsi_demo")
     a = ap.parse_args()
     torch.manual_seed(0)
@@ -72,6 +74,18 @@ def main():
     ax.legend(ncol=3, fontsize=7); fig.tight_layout()
     fig.savefig(os.path.join(a.out_dir, "mean_spectra.png"), dpi=150)
     print("wrote", os.path.join(a.out_dir, "mean_spectra.png"))
+
+    if os.path.exists(a.weights):
+        # The sample patches are already standardised with the statistics stored in the weights file.
+        trained, _ = E.load_checkpoint(a.weights)
+        with torch.no_grad():
+            pred = trained(x).argmax(1).numpy()
+        lab = z["label_window"][:, 1:1 + k, 1:1 + k]
+        m = lab >= 0
+        print(f"released pixel-pooled weights: {int(m.sum())} labeled pixels in the central {k} x {k} blocks, "
+              f"agreement {float((pred[m] == lab[m]).mean()):.4f}; centre pixel correct "
+              f"{int((pred[:, k // 2, k // 2] == cls).sum())}/{len(cls)} "
+              "(the samples come from the training data of this model, so this checks the pipeline, not accuracy)")
 
 
 if __name__ == "__main__":

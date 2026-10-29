@@ -31,7 +31,7 @@ def test_overlap_prediction_covers_every_pixel():
     for stride in (9, 5):
         pred, n = E.predict_scene(model, scene, 9, stride, "cpu")
         assert pred.shape == (23, 31) and pred.min() >= 0 and pred.max() < 4 and n > 0
-    # overlapping inference needs more forward patches than block filling
+    # overlapping inference needs more forward patches than non-overlapping inference
     assert E.predict_scene(model, scene, 9, 5, "cpu")[1] > E.predict_scene(model, scene, 9, 9, "cpu")[1]
 
 

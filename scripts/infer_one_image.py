@@ -7,7 +7,8 @@ Benchmark scene + released weights:
 Your own cube (H x W x C array in a .npy / .npz['data'] / .mat file; C and the number of classes must match the weights):
   python scripts/infer_one_image.py --cube my_scene.npy --weights my_weights.pth --out_dir outputs/mine
 
-The cube is standardised per channel over the whole image (as in training), tiled into 11 x 11 patches, every patch
+The cube is standardised per channel (with the dataset statistics stored in the weights file when it has them, as for
+the ConcealHSI weights, otherwise over the whole image, as in training), tiled into 11 x 11 patches, every patch
 predicts a central K x K block (K = 9), tiles are placed with stride S (default 5) and their class probabilities are
 summed. Writes <name>_pred.npy (H x W, 0-based class ids) and <name>_pred.png (false-colour prediction; with ground
 truth for benchmark scenes also the GT and the accuracy on labeled pixels).
@@ -76,7 +77,14 @@ def main():
     k, ncls = int(ck["center_size"]), int(ck["num_classes"])
 
     t0 = time.time()
-    pred, n_fwd = E.predict_scene(model, D.standardize_per_scene(cube), k, a.stride, a.device, a.batch_size)
+    if "norm_mean" in ck:
+        # ConcealHSI weights: fixed dataset-wide per-channel statistics, as in training.
+        mean = np.asarray(ck["norm_mean"], np.float32).reshape(1, 1, -1)
+        std = np.clip(np.asarray(ck["norm_std"], np.float32), 1e-12, None).reshape(1, 1, -1)
+        cube_norm = (cube - mean) / std
+    else:
+        cube_norm = D.standardize_per_scene(cube)
+    pred, n_fwd = E.predict_scene(model, cube_norm, k, a.stride, a.device, a.batch_size)
     dt = time.time() - t0
     os.makedirs(a.out_dir, exist_ok=True)
     np.save(os.path.join(a.out_dir, f"{name}_pred.npy"), pred)
