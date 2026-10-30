@@ -128,5 +128,5 @@ the paper).
 ## Origin
 
 The backbone is derived from the official CTMixer implementation ([ZJier/CTMixer](https://github.com/ZJier/CTMixer),
-Chen et al., *Convolution Transformer Mixer for Hyperspectral Image Classification*, IEEE GRSL 2022); see the header of
+Zhang et al., *Convolution Transformer Mixer for Hyperspectral Image Classification*, IEEE GRSL 2022); see the header of
 `mpi_ctmixer/model.py` for the modifications.
